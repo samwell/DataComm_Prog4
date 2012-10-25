@@ -34,8 +34,7 @@ public class Client4
 
    private void run()
    {
-      // TODO Auto-generated method stub
-
+      
    }
 
    public static void main(String args[])

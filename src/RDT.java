@@ -29,6 +29,7 @@ public class RDT
       {
          Thread.yield(); // Wait until it's ready for the next packet
       }
+      
       dataToSend = data;
       dataWaitingToBeSent = true;
    }
@@ -37,8 +38,10 @@ public class RDT
    {
       // TODO: You write this one, similar to sendData.
       // Uses dataWasReceived and dataReceived.
+      
+      dataReceived = new byte[App.MAX_DATA_SIZE];
 
-      // TOTODO: This was done, so compiler doesn't yell at me. Change this
+      // TODO: This was done, so compiler doesn't yell at me. Change this
       // when it comes time to implement it.
       return new byte[1];
    }
