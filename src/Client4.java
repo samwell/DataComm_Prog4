@@ -15,14 +15,14 @@ public class Client4
          throws Exception
    {
       rdt = new RDT(inIpAddress, inRcvPortNum, inPeerRcvPortNum);
-      Thread.sleep(100); // Let RDT have time to come up
+      Thread.sleep(100);
    }
 
-   public void displayImage(byte[] fileData, String fileName)
+   public void displayImage(byte[] fileData, byte[] fileName)
          throws IOException
    {
       ByteArrayInputStream bin = new ByteArrayInputStream(fileData);
-      JFrame frame = new JFrame(fileName);
+      JFrame frame = new JFrame(new String(fileName));
       JLabel label = new JLabel(new ImageIcon(ImageIO.read(bin)));
       frame.getContentPane().add(label, BorderLayout.CENTER);
       frame.pack();
@@ -41,27 +41,23 @@ public class Client4
 
       frame.setVisible(false);
       frame.setEnabled(false);
-      
+
       System.exit(0);
    }
 
-   private void run() throws IOException
+   private void sendFileRequest()
    {
       byte[] sendData = new byte[1];
-      byte[] receiveData = new byte[App.MAX_MSG_SIZE];
-      byte[] fileName;
+
       sendData[0] = App.MSG_REQUEST_IMG_FILE;
 
       rdt.sendData(sendData);
+   }
 
-      try
-      {
-         Thread.sleep(10);
-      }
-      catch (InterruptedException e)
-      {
-         e.printStackTrace();
-      }
+   private byte[] getFileName()
+   {
+      byte[] fileName;
+      byte[] receiveData = new byte[App.MAX_MSG_SIZE];
 
       receiveData = rdt.receiveData();
       fileName = new byte[receiveData.length - 1];
@@ -80,8 +76,15 @@ public class Client4
          System.exit(0);
       }
 
+      return fileName;
+   }
+
+   private byte[] getFile()
+   {
+      byte[] receiveData = new byte[App.MAX_MSG_SIZE];
       byte[] file = new byte[App.MAX_DATA_SIZE];
       int filePointer = 0;
+
       receiveData = rdt.receiveData();
 
       if (receiveData[0] == App.MSG_FILE_DATA)
@@ -99,15 +102,23 @@ public class Client4
                }
 
                file[filePointer++] = receiveData[i];
-
             }
 
             receiveData = rdt.receiveData();
          }
       }
 
-      displayImage(file, new String(fileName));
+      return file;
+   }
 
+   private void run() throws IOException
+   {
+      sendFileRequest();
+
+      byte[] fileName = getFileName();
+      byte[] file = getFile();
+
+      displayImage(file, fileName);
    }
 
    public static void main(String args[])
