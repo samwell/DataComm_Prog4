@@ -1,25 +1,57 @@
 import java.awt.BorderLayout;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.net.UnknownHostException;
 
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 
+/**
+ * A client which downloads an image file from a server and then display that
+ * file in a pop-up window.
+ * 
+ * @author jacobs
+ * 
+ */
 public class Client4
 {
    private RDT rdt;
 
+   /**
+    * Constructor: Initializes the rdt for the client using the ip address and
+    * the port numbers.
+    * 
+    * @param inIpAddress
+    *           The IP Address which the client connects to.
+    * @param inRcvPortNum
+    *           The port number the server is listening to.
+    * @param inPeerRcvPortNum
+    *           The port number the client downloads from.
+    * @throws InterruptedException
+    * @throws UnknownHostException
+    * @throws Exception
+    */
    public Client4(String inIpAddress, int inRcvPortNum, int inPeerRcvPortNum)
-         throws Exception
+         throws UnknownHostException, InterruptedException
    {
       rdt = new RDT(inIpAddress, inRcvPortNum, inPeerRcvPortNum);
       Thread.sleep(100);
    }
 
+   /**
+    * Displays the image which was downloaded.
+    * 
+    * @param fileData
+    *           The image to be displayed.
+    * @param fileName
+    *           The file name, to be set as the window title.
+    * @throws IOException
+    * @throws InterruptedException
+    */
    public void displayImage(byte[] fileData, byte[] fileName)
-         throws IOException
+         throws IOException, InterruptedException
    {
       ByteArrayInputStream bin = new ByteArrayInputStream(fileData);
       JFrame frame = new JFrame(new String(fileName));
@@ -30,14 +62,7 @@ public class Client4
       frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
       frame.setVisible(true);
 
-      try
-      {
-         Thread.sleep(5000);
-      }
-      catch (InterruptedException e)
-      {
-         e.printStackTrace();
-      }
+      Thread.sleep(5000);
 
       frame.setVisible(false);
       frame.setEnabled(false);
@@ -45,6 +70,9 @@ public class Client4
       System.exit(0);
    }
 
+   /**
+    * An image request is sent here.
+    */
    private void sendFileRequest()
    {
       byte[] sendData = new byte[1];
@@ -54,6 +82,11 @@ public class Client4
       rdt.sendData(sendData);
    }
 
+   /**
+    * The file name is retrieved.
+    * 
+    * @return fileName, a byte array containing the file name.
+    */
    private byte[] getFileName()
    {
       byte[] fileName;
@@ -79,6 +112,11 @@ public class Client4
       return fileName;
    }
 
+   /**
+    * The file is retrieved here.
+    * 
+    * @return file, a byte array which contains the image.
+    */
    private byte[] getFile()
    {
       byte[] receiveData = new byte[App.MAX_MSG_SIZE];
@@ -111,7 +149,13 @@ public class Client4
       return file;
    }
 
-   private void run() throws IOException
+   /**
+    * Executes and handles displaying the image.
+    * 
+    * @throws IOException
+    * @throws InterruptedException
+    */
+   private void run() throws IOException, InterruptedException
    {
       sendFileRequest();
 
@@ -135,12 +179,26 @@ public class Client4
             new Client4(args[0], App.CLIENT_RCV_PORT_NUM,
                   App.CLIENT_PEER_RCV_PORT_NUM).run();
          }
-
       }
-      catch (Exception ex)
+      catch (UnknownHostException e)
       {
-         System.out.println("Error in Client, closing: " + ex.toString());
-         ex.printStackTrace();
+         System.out.println("Unidentifable host or port was sent.");
+         e.printStackTrace();
+      }
+      catch (IOException e)
+      {
+         System.out.println("Error displaying the image.");
+         e.printStackTrace();
+      }
+      catch (InterruptedException e)
+      {
+         System.out.println("Error while timing out.");
+         e.printStackTrace();
+      }
+      catch (Exception e)
+      {
+         System.out.println("Error in Client.");
+         e.printStackTrace();
       }
    }
 }
