@@ -32,7 +32,7 @@ public class Server4
       if (fileName == null)
       {
          rdt.sendData(byteToArr(App.MSG_NO_IMG_FILE_AVAILABLE));
-         return;
+         System.exit(0);
       }
 
       rdt.sendData(concat(App.MSG_FILE_NAME, fileName.getBytes()));
