@@ -36,14 +36,13 @@ public class RDT
 
    public byte[] receiveData()
    {
-      // TODO: You write this one, similar to sendData.
-      // Uses dataWasReceived and dataReceived.
+      while(!dataWasReceived)
+      {
+         Thread.yield();
+      }
       
-      dataReceived = new byte[App.MAX_DATA_SIZE];
-
-      // TODO: This was done, so compiler doesn't yell at me. Change this
-      // when it comes time to implement it.
-      return new byte[1];
+      dataWasReceived = false;
+      return dataReceived;
    }
 
    private class Receiver extends Thread
@@ -71,26 +70,24 @@ public class RDT
             try
             {
                System.out.println("Receiver waiting for data from below.");
-               // TODO: Instantiate receivePacket and pass receiveData and
-               // receiveData.length to the DatagramPacket constructor
-
-               // TODO: Receive a a datagram packet into receivePacket
+               
+               receivePacket = new DatagramPacket(receiveData, receiveData.length);
+               receiverSocket.receive(receivePacket);
 
                System.out.println("Receiver got data from below.");
                System.out.println("Rcv Data good - try to deliver.");
-
-               // TODO: Copy the data received in receivePacket into
-               // dataReceived
-               // Make sure you use receivePacket.getLength() to get exactly
-               // the number of bytes received.
+               
+               dataReceived = new byte[receivePacket.getLength()];
+               dataReceived = receivePacket.getData();
 
                dataWasReceived = true;
+               
                while (dataWasReceived)
                {
                   Thread.yield();
                }
+               
                System.out.println("Rcv Data delivered.");
-
             }
             catch (Exception ex)
             {
@@ -107,32 +104,33 @@ public class RDT
       @Override
       public void run()
       {
-
-         // TODO: Make a senderSocket similar to how receiverSocket was
-         // made in Receiver, except the DatagramSocket won't
-         // take a port number parameter.
-
+         try
+         {
+            senderSocket = new DatagramSocket();
+            System.out.println("Started Sender.");
+         }
+         catch (Exception ex)
+         {
+            System.out.println("Can't start Sender: " + ex.toString());
+            System.exit(1);
+         }
+         
          while (true)
          {
             try
             {
                System.out.println("Sender waiting for Data to be sent.");
-
-               // TODO: Do Thread.yield() until there is data waiting to be
-               // sent.
-               // Hint: use a while loop that loops until a certain class
-               // variable is true. Thread.yield() will allow other Threads
-               // to execute ahead of this one.
+               
+               while(!dataWaitingToBeSent)
+               {
+                  Thread.yield();
+               }
 
                System.out.println("Sender got Data to be sent.");
-
-               while (!sendPacket())
-                  ;
-
-               // TODO: Set dataWaitingToBeSent appropriately. Think about it:
-               // you just sent the data that was waiting to be sent, so
-               // at this very instant, is data waiting to be sent?
-
+               
+               while(!sendPacket());
+               
+               dataWaitingToBeSent = false;
             }
             catch (Exception ex)
             {
@@ -145,12 +143,14 @@ public class RDT
       {
          try
          {
-
-            // TODO: You write it! That is, Create a new DatagramPacket and
-            // send it. You should know which byte array to use as well
-            // as to which IP address and port number it should be sent.
-
-            System.out.println("Sender sent data");
+            DatagramPacket packet = new DatagramPacket(dataToSend, 
+                    dataToSend.length, peerIpAddress, peerRcvPortNum);
+            // DO: You write it! That is, Create a new DatagramPacket and 
+            //     send it. You should know which byte array to use as well 
+            //     as to which IP address and port number it should be sent. 
+            senderSocket.send(packet);
+            
+            System.out.println( "Sender sent data" );
             return true;
          }
          catch (Exception ex)
@@ -159,5 +159,5 @@ public class RDT
             return false;
          }
       }
-   } // end Sender class
+   }    // end Sender class
 } // end RDT class
